@@ -48,6 +48,7 @@ from lib_grading import (
     clear_judge_cache,
 )
 from lib_tasks import Task, TaskLoader
+from utils.task_logger import set_current_log_path, start_mitm_once
 
 
 # Configure logging
@@ -308,6 +309,11 @@ def _parse_args() -> argparse.Namespace:
         type=float,
         default=-0.5,
         help="Slope (%%/run) below which regression is flagged (default: -0.5)",
+    )
+    parser.add_argument(
+        "--mitm",
+        action="store_true",
+        help="Start the mitm proxy and save the detailed request data",
     )
     args = parser.parse_args()
 
@@ -831,6 +837,13 @@ def main():
         else:
             task_ids = core_task_ids
             logger.info(f"🎯 Core mode: running {len(core_task_ids)} representative tasks")
+
+    # 开启代理保存记录大模型详细请求
+    llm_request_log_dir = None
+    if args.mitm:
+        llm_request_log_dir = Path(args.output_dir) / f"{run_id}_transcripts" / "llm_request_logs"
+        llm_request_log_dir.mkdir(parents=True, exist_ok=True)
+        args.mitm = start_mitm_once()
     
     results = []
     grades_by_task_id = {}
@@ -1006,6 +1019,9 @@ def main():
         heartbeat_thread.start()
 
         for run_index in range(runs_per_task):
+            if args.mitm and llm_request_log_dir:
+                set_current_log_path(
+                    os.path.join(llm_request_log_dir.absolute(), f"{task.task_id}_run_index_{run_index + 1}.jsonl"))
             logger.info("\n%s", "=" * 80)
             logger.info(
                 "📋 Task %s/%s (Run %s/%s)",
