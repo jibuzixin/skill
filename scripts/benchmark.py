@@ -48,6 +48,7 @@ from lib_grading import (
     clear_judge_cache,
 )
 from lib_tasks import Task, TaskLoader
+from scripts.export_excel import _export_one
 from utils.task_logger import set_current_log_path, start_mitm_once
 
 
@@ -1241,6 +1242,9 @@ def main():
         return task_entries, efficiency
 
     task_entries, efficiency = _build_and_write_results()
+
+    # 将 json 格式的结果转化为 Excel
+    _export_one(output_path, output_path.with_suffix(".xlsx"))
 
     # Calculate and log final score summary
     total_score = sum(grades_by_task_id[tid]["mean"] for tid in grades_by_task_id)
