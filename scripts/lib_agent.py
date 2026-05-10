@@ -11,13 +11,14 @@ import platform
 import stat
 import subprocess
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib import error, request
 
 from lib_tasks import Task
 from lib_fws import is_fws_task, fws_available, start_fws, stop_fws
-
+from scripts.utils.task_logger import get_proxy_env
 
 logger = logging.getLogger(__name__)
 
@@ -917,6 +918,7 @@ def execute_openclaw_task(
                 timeout=timeout_seconds,
                 check=False,
                 shell=USE_SHELL,
+                env=get_proxy_env()
             )
             stdout = result.stdout
             stderr = result.stderr
@@ -1197,8 +1199,30 @@ def call_judge_api(
         return _judge_via_anthropic(prompt, model, timeout_seconds)
     if model.startswith("openai/"):
         return _judge_via_openai(prompt, model, timeout_seconds)
+    if model.startswith("custom/"):
+        return _judge_via_custom(prompt, model, timeout_seconds)
     # Default: OpenRouter (handles openrouter/ prefix and bare provider/model)
     return _judge_via_openrouter(prompt, model, timeout_seconds)
+
+
+def _judge_via_custom(prompt: str, model: str, timeout_seconds: float) -> dict:
+    """Call the judge API directly and return the response text."""
+    api_key = os.environ.get("CUSTOM_API_KEY")
+    base_url = os.environ.get("CUSTOM_BASE_URL")
+    if not api_key:
+        return {"status": "error", "text": "", "error": "CUSTOM_API_KEY not set"}
+    if not base_url:
+        return {"status": "error", "text": "", "error": "CUSTOM_BASE_URL not set"}
+    bare_model = model.removeprefix("custom/")
+    return _judge_via_openai_compat(
+        prompt, bare_model,
+        base_url, api_key, timeout_seconds,
+        extra_headers={
+            "X-CHJ-GWToken": api_key,
+            "BCS-APIHub-RequestId": str(uuid.uuid4()),
+            "Authorization": f"Bearer {api_key}",
+        },
+    )
 
 
 def _judge_via_openai_compat(
