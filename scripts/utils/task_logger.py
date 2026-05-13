@@ -1,7 +1,6 @@
 import subprocess
 import atexit
 import os
-import sys
 import logging
 import socket
 import time
