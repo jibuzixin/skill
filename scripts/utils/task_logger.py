@@ -98,6 +98,7 @@ def stop_mitm():
             except:
                 pass
         mitm_process = None
+        logger.info("已停止 mitm 进程")
 
     # 清理端口对应的同步文件
     if mitm_port:
@@ -108,7 +109,7 @@ def stop_mitm():
         except Exception:
             pass
 
-    mitm_port = None
-    logger.info(f"🛑 已停止 mitm 并清理同步文件")
+        mitm_port = None
+        logger.info("已清理同步文件")
 
 atexit.register(stop_mitm)
