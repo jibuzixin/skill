@@ -116,19 +116,19 @@ def parse_stream_to_normal(sse_text):
         }
 
     # 构建标准非流式结构
-    message = {"role": "assistant", "content": []}
-    if full_reasoning.strip():
-        message["content"].append({"type": "thinking", "thinking": full_reasoning.strip()})
-    if full_content.strip():
-        message["content"].append({"type": "text", "text": full_content})
+    message = {}
+    message["role"] = "assistant"
+    message["reasoning_content"] = full_reasoning if full_reasoning.strip() else None
+    message["content"] = full_content if full_content.strip() else None
     if tool_calls_dict:
+        message["tool_calls"] = []
         for i in sorted(tool_calls_dict.keys()):
-            message["content"].append({
+            message["tool_calls"].append({
                 "type": tool_calls_dict[i]["type"],
                 "id": tool_calls_dict[i]["id"],
                 "function": {
                     "name": tool_calls_dict[i]["function"]["name"],
-                    "arguments": json.loads(tool_calls_dict[i]["function"]["arguments"]),
+                    "arguments": tool_calls_dict[i]["function"]["arguments"],
                 }
             })
 

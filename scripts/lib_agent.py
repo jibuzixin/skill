@@ -18,7 +18,7 @@ from urllib import error, request
 
 from lib_tasks import Task
 from lib_fws import is_fws_task, fws_available, start_fws, stop_fws
-from scripts.utils.task_logger import get_proxy_env
+from utils.task_logger import get_proxy_env
 
 logger = logging.getLogger(__name__)
 
@@ -879,6 +879,7 @@ def execute_openclaw_task(
                     timeout=remaining,
                     check=False,
                     shell=USE_SHELL,
+                    env=get_proxy_env()
                 )
                 stdout += result.stdout
                 stderr += result.stderr
