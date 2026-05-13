@@ -80,7 +80,7 @@ def get_proxy_env() -> dict | None:
     proxy = f"http://127.0.0.1:{mitm_port}"
     env["HTTP_PROXY"] = proxy
     env["HTTPS_PROXY"] = proxy
-    env["NO_PROXY"] = ""
+    env["NO_PROXY"] = "localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,.baidu.com,.bing.com,.google.com,.sogou.com,.so.com,github.com,gitlab.com,api.*,*.ai,*.com"
     return env
 
 # 退出时清理
